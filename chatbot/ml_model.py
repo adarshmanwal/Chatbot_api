@@ -2,18 +2,25 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 class SimpleQAModel:
-    def __init__(self, qa_data):
+    def __init__(self, qa_data,threshold):
         self.qa_data = qa_data
         self.questions = list(qa_data.keys())
         self.answers = list(qa_data.values())
         self.vectorizer = TfidfVectorizer().fit(self.questions)
+        self.threshold = threshold 
 
     def get_response(self, query):
         query_vec = self.vectorizer.transform([query])
         question_vecs = self.vectorizer.transform(self.questions)
         similarities = cosine_similarity(query_vec, question_vecs).flatten()
         best_match_index = similarities.argmax()
-        return self.answers[best_match_index]
+        best_match_score = similarities[best_match_index]
+        print(best_match_score)
+        
+        if best_match_score >= self.threshold:
+            return self.answers[best_match_index]
+        else:
+            return "Sorry, I don't understand your question. or the answer is beyond my knowledge"
 
 qa_data = {
     "What model are you using to train the chatbot?": "We are using a BERT-based model fine-tuned for question answering. BERT (Bidirectional Encoder Representations from Transformers) is a powerful transformer model developed by Google.",
@@ -35,4 +42,4 @@ qa_data = {
 }
 
 
-model = SimpleQAModel(qa_data)
+model = SimpleQAModel(qa_data, threshold=0.2)
